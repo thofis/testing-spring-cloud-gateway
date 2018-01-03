@@ -1,28 +1,41 @@
 window.onload = function (ev) {
+    initStocks();
     drawStockChart();
     init();
 };
 
 var stocks;
 
-function drawStockChart() {
+function drawStockChart(names) {
+    var data = {
+        labels: [],
+        datasets: []
+    };
+    names.forEach(function (name) {
+        data.datasets.push({
+            data: [],
+            label: name,
+            borderColor: getRandomColor(),
+            fill: false
+        });
+    });
     stocks = new Chart(document.getElementById('stocks'), {
         type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                data: [],
-                label: "ACME",
-                borderColor: "#3e95cd",
-                fill: false
-            }]
-        },
+        data: data,
         options: {
             title: {
                 display: true,
                 text: 'Live Stock Ticker'
             }
         }
+    });
+}
+
+function initStocks() {
+    fetch('http://localhost:8082/stocks').then(function (response) {
+        return response.json();
+    }).then(function (response) {
+        drawStockChart(response.names);
     });
 }
 
@@ -35,6 +48,15 @@ function init() {
         stocks.data.datasets[ 0 ].data.push(1000);
         stocks.update();
     });
+}
+
+function getRandomColor() {
+    var letters = '0123456789A';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 10)];
+    }
+    return color;
 }
 
 
