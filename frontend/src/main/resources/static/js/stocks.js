@@ -2,10 +2,13 @@ window.onload = function (ev) {
     initStocks();
 };
 
-var stocks;
+var stocks = null;
+var stompClient = null;
+
 
 function initStocks() {
-    fetch('http://localhost:8082/stocks').then(function (response) {
+    // fetch('http://localhost:8082/stocks').then(function (response) {
+    fetch('http://localhost:8080/stocknames').then(function (response) {
         return response.json();
     }).then(function (response) {
         drawStockChart(response.names);
@@ -24,7 +27,24 @@ function drawStockChart(names) {
             borderColor: getRandomColor(),
             fill: false
         });
+
     });
+
+    // var socket = new SockJS('http://localhost:8083/stockvalues');
+    // var socket = new SockJS('http://localhost:8080/stockvalues');
+    var socket = new SockJS('http://localhost:8080/stockvalues');
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+        stompClient.subscribe('/queue', function (response) {
+            var json = JSON.parse(response.body);
+            //console.log(response);
+            var returnedIndex = response.headers.subscription.substr(response.headers.subscription.length - 1);
+
+            console.log(returnedIndex);
+            updateChart(0, json.value);
+        });
+    });
+
     stocks = new Chart(document.getElementById('stocks'), {
         type: 'line',
         data: data,
@@ -37,17 +57,29 @@ function drawStockChart(names) {
     });
 }
 
-
-function init() {
-    var addBtn = document.getElementById('add');
-    addBtn.addEventListener('click', function () {
-        var now = new Date();
-        var formattedDate = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-        stocks.data.labels.push(formattedDate);
-        stocks.data.datasets[ 0 ].data.push(1000);
-        stocks.update();
-    });
+function updateChart(index, value) {
+    var now = new Date();
+    var formattedDate = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+    stocks.data.labels.push(formattedDate);
+    stocks.data.datasets[ index ].data.push(value);
+    if (stocks.data.datasets[ index ].data.length > 20) {
+        stocks.data.datasets[ index ].data.shift();
+        stocks.data.labels.shift();
+    }
+    stocks.update();
 }
+
+
+// function init() {
+//     var addBtn = document.getElementById('add');
+//     addBtn.addEventListener('click', function () {
+//         var now = new Date();
+//         var formattedDate = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+//         stocks.data.labels.push(formattedDate);
+//         stocks.data.datasets[ 0 ].data.push(1000);
+//         stocks.update();
+//     });
+// }
 
 function getRandomColor() {
     var letters = '0123456789A';

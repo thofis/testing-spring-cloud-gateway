@@ -12,6 +12,6 @@ public class StocksController {
 	@GetMapping
 	@CrossOrigin(origins = "http://localhost:8081")
 	Mono<Stocks> get() {
-		return Mono.just(new Stocks("Acme Corp.", "Parker Industries"));
+		return Mono.just(new Stocks("Acme Corp." /*, "Parker Industries"*/));
 	}
 }

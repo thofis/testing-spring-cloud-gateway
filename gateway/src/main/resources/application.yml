@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      filter:
+        remove-non-proxy-headers:
+          headers:
+      routes:
+      - id: stocknames
+        uri: http://localhost:8082/stocks
+        predicates:
+        - Path=/stocknames
+      - id: stockvalues_http
+        uri: http://localhost:8083
+        predicates:
+        - Path=/stockvalues/**
+        filters:
+        - RewritePath=/stockvalues/(?<segment>.*), /stockvalues/$\{segment}
+      - id: stockvalues
+        uri: ws://localhost:8083
+        predicates:
+        - Path=/stockvalues/**
+      - id: default
+        uri: http://localhost:8081
+        order: 10000
+        predicates:
+        - Path=/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+#    org.springframework.http.server.reactive: DEBUG
+#    org.springframework.web.reactive: DEBUG
+#    reactor.ipc.netty: DEBUG
+
