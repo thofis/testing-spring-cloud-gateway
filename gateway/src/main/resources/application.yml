@@ -12,16 +12,10 @@ spring:
         uri: http://localhost:8082/stocks
         predicates:
         - Path=/stocknames
-      - id: stockvalues_http
-        uri: http://localhost:8083
-        predicates:
-        - Path=/stockvalues/**
-        filters:
-        - RewritePath=/stockvalues/(?<segment>.*), /stockvalues/$\{segment}
       - id: stockvalues
-        uri: ws://localhost:8083
+        uri: ws://localhost:8083/data
         predicates:
-        - Path=/stockvalues/**
+        - Path=/data
       - id: default
         uri: http://localhost:8081
         order: 10000

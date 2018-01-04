@@ -30,20 +30,12 @@ function drawStockChart(names) {
 
     });
 
-    // var socket = new SockJS('http://localhost:8083/stockvalues');
-    // var socket = new SockJS('http://localhost:8080/stockvalues');
-    var socket = new SockJS('http://localhost:8080/stockvalues');
-    stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
-        stompClient.subscribe('/queue', function (response) {
-            var json = JSON.parse(response.body);
-            //console.log(response);
-            var returnedIndex = response.headers.subscription.substr(response.headers.subscription.length - 1);
+    var ws = new WebSocket('ws://localhost:8080/data');
+    ws.onmessage = function (event) {
+        var data = JSON.parse(event.data);
+        updateChart(0, data.value);
+    };
 
-            console.log(returnedIndex);
-            updateChart(0, json.value);
-        });
-    });
 
     stocks = new Chart(document.getElementById('stocks'), {
         type: 'line',
